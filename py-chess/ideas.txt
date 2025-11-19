@@ -1,0 +1,15 @@
+Evaluate:
+Pawns on black squares if no black bishop / white squares if no white bishop
+
+Other:
+
+SPEED! --> More depth
+
+			chess.A8: None, chess.B8: None, chess.C8: None, chess.D8: None, chess.E8: None, chess.F8: None, chess.G8: None, chess.H8: None,
+			chess.A7: None, chess.B7: None, chess.C7: None, chess.D7: None, chess.E7: None, chess.F7: None, chess.G7: None, chess.H7: None,
+			chess.A6: None, chess.B6: None, chess.C6: None, chess.D6: None, chess.E6: None, chess.F6: None, chess.G6: None, chess.H6: None,
+			chess.A5: None, chess.B5: None, chess.C5: None, chess.D5: None, chess.E5: None, chess.F5: None, chess.G5: None, chess.H5: None,
+			chess.A4: None, chess.B4: None, chess.C4: None, chess.D4: None, chess.E4: None, chess.F4: None, chess.G4: None, chess.H4: None,
+			chess.A3: None, chess.B3: None, chess.C3: None, chess.D3: None, chess.E3: None, chess.F3: None, chess.G3: None, chess.H3: None,
+			chess.A2: None, chess.B2: None, chess.C2: None, chess.D2: None, chess.E2: None, chess.F2: None, chess.G2: None, chess.H2: None,
+			chess.A1: None, chess.B1: None, chess.C1: None, chess.D1: None, chess.E1: None, chess.F1: None, chess.G1: None, chess.H1: None,
