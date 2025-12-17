@@ -152,18 +152,18 @@ fun legalMovesSorted(board: Board): List<Move> {
 	return board.legalMoves().sortedBy { move: Move ->
 		when (board.getPiece(move.from)) {
 			Piece.WHITE_PAWN -> 0
-			Piece.WHITE_KNIGHT -> 3
-			Piece.WHITE_BISHOP -> 2
-			Piece.WHITE_ROOK -> 1
+			Piece.WHITE_KNIGHT -> 4
+			Piece.WHITE_BISHOP -> 3
+			Piece.WHITE_ROOK -> 2
 			Piece.WHITE_QUEEN -> 5
-			Piece.WHITE_KING -> 4
+			Piece.WHITE_KING -> 1
 
 			Piece.BLACK_PAWN -> 0
-			Piece.BLACK_KNIGHT -> 3
-			Piece.BLACK_BISHOP -> 2
-			Piece.BLACK_ROOK -> 1
+			Piece.BLACK_KNIGHT -> 4
+			Piece.BLACK_BISHOP -> 3
+			Piece.BLACK_ROOK -> 2
 			Piece.BLACK_QUEEN -> 5
-			Piece.BLACK_KING -> 4
+			Piece.BLACK_KING -> 1
 
 			else -> 0
 		}
@@ -218,7 +218,7 @@ fun evaluate(board: Board): Double {
 	return score
 }
 
-fun generate(board: Board, depth: Int = 0, alpha: Double = NEGATIVE_INFINITY, beta: Double = POSITIVE_INFINITY, returnMove: Boolean = true): Any? {
+fun generate(board: Board, depth: Int = 0, alpha: Double = NEGATIVE_INFINITY, beta: Double = POSITIVE_INFINITY, returnMove: Boolean = true): Any {
 	// https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning#Pseudocode
 	if (depth == 0 || board.isDraw || board.isMated) {
 		return when (returnMove) {
@@ -230,11 +230,21 @@ fun generate(board: Board, depth: Int = 0, alpha: Double = NEGATIVE_INFINITY, be
 	var bestMove: Move? = null
 	var alpha: Double = alpha
 	var beta: Double = beta
+	val legalMoves = legalMovesSorted(board)
+	val progress: ProgressBar?
+	if (returnMove) {
+		progress = ProgressBar(legalMoves.size.toDouble())
+	} else {
+		progress = null
+	}
 	when (board.sideToMove) {
 		Side.WHITE -> {
 			// Maximizing
 			score = NEGATIVE_INFINITY
-			for (move: Move in legalMovesSorted(board)) {
+			for (move: Move in legalMoves) {
+				if (returnMove) {
+					progress?.next()
+				}
 				board.doMove(move)
 				val generatedScore: Double = generate(board, depth - 1, alpha, beta, false) as Double
 				if (generatedScore > score) {
@@ -252,7 +262,10 @@ fun generate(board: Board, depth: Int = 0, alpha: Double = NEGATIVE_INFINITY, be
 		Side.BLACK -> {
 			// Minimizing
 			score = POSITIVE_INFINITY
-			for (move: Move in legalMovesSorted(board)) {
+			for (move: Move in legalMoves) {
+				if (returnMove) {
+					progress?.next()
+				}
 				board.doMove(move)
 				val generatedScore: Double = generate(board, depth - 1, alpha, beta, false) as Double
 				if (generatedScore < score) {
@@ -268,7 +281,7 @@ fun generate(board: Board, depth: Int = 0, alpha: Double = NEGATIVE_INFINITY, be
 		}
 	}
 	return when (returnMove) {
-		true -> bestMove
+		true -> bestMove ?: Unit
 		false -> score
 	}
 }
