@@ -178,38 +178,41 @@ fun evaluate(board: Board): Double {
 	}
 	var score: Double = 0.0
 	for (piece: Piece in Piece.allPieces) {
-		for (square: Square? in board.getPieceLocation(
-			piece
-		)) {
+		for (square: Square? in board.getPieceLocation(piece)) {
 			if (square == null) {
 				continue
 			}
 
 			// material, adjusted to position
 			score += (Maps.piece_values[piece] ?: 0.0) + (Maps.main[piece]?.get(square) ?: 0.0)
+
+			// pawn structure
+			if (piece == Piece.WHITE_PAWN) {
+				score += board.squareAttackedByPieceType(square, Side.WHITE, PieceType.PAWN).countOneBits() / 4.0 // Only WHITE pawns bc Side
+				score -= board.squareAttackedByPieceType(square, Side.WHITE, PieceType.PAWN).countOneBits() / 4.0 // Only BLACK pawns bc Side
+			}
 		}
 	}
 
 	// attacked squares
 	for (square: Square in entries) {
-		val attackedWhite: Double = board.squareAttackedBy(square, Side.WHITE).countOneBits().toDouble()
-		val attackedBlack: Double = board.squareAttackedBy(square, Side.BLACK).countOneBits().toDouble()
+		val attackedWhiteCount: Double = board.squareAttackedBy(square, Side.WHITE).countOneBits().toDouble()
+		val attackedBlackCount: Double = board.squareAttackedBy(square, Side.WHITE).countOneBits().toDouble()
 
 		// general / moving
-		score += attackedWhite / 32.0
-		score -= attackedBlack / 32.0
+		score += attackedWhiteCount / 32.0
+		score -= attackedBlackCount / 32.0
 
 		// more than opponent / attacking
 		when {
-			(attackedWhite > attackedBlack) -> {
+			(attackedWhiteCount > attackedBlackCount) -> {
 				score += abs((Maps.piece_values[board.getPiece(square)] ?: 0.0) / 4.0)
 			}
 
-			(attackedBlack > attackedWhite) -> {
+			(attackedBlackCount > attackedWhiteCount) -> {
 				score -= abs((Maps.piece_values[board.getPiece(square)] ?: 0.0) / 4.0)
 			}
 		}
-
 	}
 
 	return score
