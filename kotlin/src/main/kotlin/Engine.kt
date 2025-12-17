@@ -147,9 +147,30 @@ object Maps {
 	)
 }
 
-fun evaluate(
-	board: Board
-): Double {
+fun legalMovesSorted(board: Board): List<Move> {
+	// returns the legal moves ranked by likelihood, so alpha-beta pruning works better.
+	return board.legalMoves().sortedBy { move: Move ->
+		when (board.getPiece(move.from)) {
+			Piece.WHITE_PAWN -> 0
+			Piece.WHITE_KNIGHT -> 3
+			Piece.WHITE_BISHOP -> 2
+			Piece.WHITE_ROOK -> 1
+			Piece.WHITE_QUEEN -> 5
+			Piece.WHITE_KING -> 4
+
+			Piece.BLACK_PAWN -> 0
+			Piece.BLACK_KNIGHT -> 3
+			Piece.BLACK_BISHOP -> 2
+			Piece.BLACK_ROOK -> 1
+			Piece.BLACK_QUEEN -> 5
+			Piece.BLACK_KING -> 4
+
+			else -> 0
+		}
+	}
+}
+
+fun evaluate(board: Board): Double {
 	when {
 		board.isDraw -> return 0.0
 		board.isMated && board.sideToMove == Side.BLACK -> return POSITIVE_INFINITY
@@ -170,22 +191,22 @@ fun evaluate(
 	}
 
 	// attacked squares
-	for (square: Square in Square.entries) {
+	for (square: Square in entries) {
 		val attackedWhite: Double = board.squareAttackedBy(square, Side.WHITE).countOneBits().toDouble()
 		val attackedBlack: Double = board.squareAttackedBy(square, Side.BLACK).countOneBits().toDouble()
 
 		// general / moving
-		score += attackedWhite / 16.0
-		score -= attackedBlack / 16.0
+		score += attackedWhite / 32.0
+		score -= attackedBlack / 32.0
 
 		// more than opponent / attacking
 		when {
 			(attackedWhite > attackedBlack) -> {
-				score += abs((Maps.piece_values[board.getPiece(square)] ?: 0.0) / 2.0)
+				score += abs((Maps.piece_values[board.getPiece(square)] ?: 0.0) / 4.0)
 			}
 
 			(attackedBlack > attackedWhite) -> {
-				score -= abs((Maps.piece_values[board.getPiece(square)] ?: 0.0) / 2.0)
+				score -= abs((Maps.piece_values[board.getPiece(square)] ?: 0.0) / 4.0)
 			}
 		}
 
@@ -202,7 +223,7 @@ fun generate(board: Board, depth: Int = 0, alpha: Double = NEGATIVE_INFINITY, be
 			false -> evaluate(board)
 		}
 	}
-	var score: Double = 0.0
+	var score: Double
 	var bestMove: Move? = null
 	var alpha: Double = alpha
 	var beta: Double = beta
@@ -210,7 +231,7 @@ fun generate(board: Board, depth: Int = 0, alpha: Double = NEGATIVE_INFINITY, be
 		Side.WHITE -> {
 			// Maximizing
 			score = NEGATIVE_INFINITY
-			for (move: Move in board.legalMoves()) {
+			for (move: Move in legalMovesSorted(board)) {
 				board.doMove(move)
 				val generatedScore: Double = generate(board, depth - 1, alpha, beta, false) as Double
 				if (generatedScore > score) {
@@ -228,7 +249,7 @@ fun generate(board: Board, depth: Int = 0, alpha: Double = NEGATIVE_INFINITY, be
 		Side.BLACK -> {
 			// Minimizing
 			score = POSITIVE_INFINITY
-			for (move: Move in board.legalMoves()) {
+			for (move: Move in legalMovesSorted(board)) {
 				board.doMove(move)
 				val generatedScore: Double = generate(board, depth - 1, alpha, beta, false) as Double
 				if (generatedScore < score) {
