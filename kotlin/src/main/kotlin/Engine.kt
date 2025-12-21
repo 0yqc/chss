@@ -226,11 +226,15 @@ fun generate(board: Board, depth: Int = 0, alpha: Double = NEGATIVE_INFINITY, be
 			false -> evaluate(board)
 		}
 	}
+	val legalMoves = legalMovesSorted(board)
+	var bestMove: Move = legalMoves.first()
+	// forced moves
+	if (legalMoves.size == 1 && returnMove) {
+		return legalMoves[0]
+	}
 	var score: Double
-	var bestMove: Move? = null
 	var alpha: Double = alpha
 	var beta: Double = beta
-	val legalMoves = legalMovesSorted(board)
 	val progress: ProgressBar? = when (returnMove) {
 		true -> ProgressBar(legalMoves.size.toDouble())
 		false -> null
@@ -279,7 +283,7 @@ fun generate(board: Board, depth: Int = 0, alpha: Double = NEGATIVE_INFINITY, be
 		}
 	}
 	return when (returnMove) {
-		true -> bestMove ?: Unit
+		true -> bestMove
 		false -> score
 	}
 }

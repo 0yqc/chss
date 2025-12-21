@@ -52,15 +52,18 @@ fun main() {
 
 			"chss" -> {
 				val (move: Move, time: Duration) = measureTimedValue {
-					generate(board, depth = depth) as Move? ?: error("No best move found, possibly a check- or stalemate.")
+					generate(board, depth = depth) as Move
+				}
+				if (move == Unit) {
+					error("Stalemate, Checkmate or Depth < 1")
 				}
 				// only do something if twice too low/high
+				board.doMove(move)
 				depthAdj += when {
 					(timeDecr != null && time > timeDecr) -> - 1.0
 					(timeIncr != null && time < timeIncr) -> 0.5
 					else -> 0.0
 				}
-				board.doMove(move)
 				println()
 				println(board)
 				println("Move: $move")
