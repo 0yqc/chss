@@ -14,10 +14,12 @@ fun main() {
 		Side.BLACK to "chss"
 	)
 
-	var depth: Double = 5.5 // initial depth; only whole number will be taken for the real depth
-	val timeMin: Duration = 3.seconds // time to increase depth by 0.5 when under
-	val timeMax: Duration = 15.seconds // time to decrease depth by 0.5 when over
+	var depth: Int = 6 // initial depth; only whole number will be taken for the real depth
+	val timeIncr: Duration? = 5.seconds // time to increase depth by 1 when under twice; null to disable
+	val timeDecr: Duration? = 15.seconds // time to decrease depth by 1 when over once; null to disable
 	// NOTE: aren't hard limits, often will be over/under
+
+	var depthAdj: Double = 0.0
 
 	moveLoop@ while (!board.isDraw && !board.isMated) {
 		when (players[board.sideToMove]) {
@@ -50,24 +52,32 @@ fun main() {
 
 			"chss" -> {
 				val (move: Move, time: Duration) = measureTimedValue {
-					generate(board, depth = depth.toInt()) as Move? ?: error("No best move found, possibly a check- or stalemate.")
+					generate(board, depth = depth) as Move? ?: error("No best move found, possibly a check- or stalemate.")
 				}
-				val depthAdj: Double = when {
-					(time > timeMax) -> - 0.5
-					(time < timeMin) -> 0.5
+				// only do something if twice too low/high
+				depthAdj += when {
+					(timeDecr != null && time > timeDecr) -> - 1.0
+					(timeIncr != null && time < timeIncr) -> 0.5
 					else -> 0.0
 				}
 				board.doMove(move)
 				println()
 				println(board)
 				println("Move: $move")
-				println("Time: $time")
-				println("Depth: $depth (+ $depthAdj)")
+				println("Time: ${time.inWholeSeconds}s")
+				println("Depth: $depth${if (depthAdj > 0) " (+$depthAdj)" else " ($depthAdj)"}")
 				println()
-				depth += depthAdj
-				if (depth < 1) {
-					depth = 1.0
+				when (depthAdj) {
+					1.0 -> {
+						depth++
+						depthAdj = 0.0
+					}
+					-1.0 -> {
+						depth--
+						depthAdj = 0.0
+					}
 				}
+				depth.coerceAtLeast(1)
 			}
 		}
 	}
