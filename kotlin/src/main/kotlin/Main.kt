@@ -10,7 +10,7 @@ fun main() {
 	val board: Board = Board()
 
 	val players: Map<Side, String> = mapOf(
-		Side.WHITE to "human",
+		Side.WHITE to "chss",
 		Side.BLACK to "chss"
 	)
 
@@ -43,9 +43,8 @@ fun main() {
 						moved = false
 						continue
 					}
-					println()
-					println(board)
 					println("Move: $move")
+					println("Score: ${evaluate(board)}")
 					println()
 				}
 			}
@@ -60,21 +59,22 @@ fun main() {
 				// only do something if twice too low/high
 				board.doMove(move)
 				when {
-					(timeDecr != null && time > timeDecr) -> depthAdj = - 1.0
+					(timeDecr != null && time > timeDecr) -> depthAdj = -1.0
 					(timeIncr != null && time < timeIncr) -> depthAdj += 0.5
 					else -> depthAdj = 0.0
 				}
 				println()
-				println(board)
 				println("Move: $move")
 				println("Time: ${time.inWholeSeconds}s")
 				println("Depth: $depth (${if (depthAdj >= 0) "+$depthAdj" else depthAdj})")
+				println("Score: ${evaluate(board)}")
 				println()
 				when {
 					depthAdj >= 1.0 -> {
 						depth++
 						depthAdj = 0.0
 					}
+
 					depthAdj <= -1.0 -> {
 						depth--
 						depthAdj = 0.0
@@ -83,6 +83,5 @@ fun main() {
 				depth.coerceAtLeast(1)
 			}
 		}
-		println("Score: ${evaluate(board)}")
 	}
 }

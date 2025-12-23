@@ -8,6 +8,7 @@ import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.abs
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 object Maps {
 	val main: Map<Piece, Map<Square, Double>> = mapOf(
@@ -244,13 +245,7 @@ fun generate(board: Board, depth: Int = 1, alpha: Double = NEGATIVE_INFINITY, be
 			// Maximizing
 			score = NEGATIVE_INFINITY
 			for (move: Move in legalMoves) {
-				if (returnMove) {
-					val expectedRemaining: Duration? = progress?.next()
-					if (expectedRemaining != null && expectedRemaining > 1.minutes) {
-						print("""\x1B[1K\r""")
-						return generate(board, (depth - 1).coerceAtLeast(1))
-					}
-				}
+				progress?.next()
 				board.doMove(move)
 				val generatedScore: Double = generate(board, depth - 1, alpha, beta, false) as Double
 				if (generatedScore > score) {
@@ -269,13 +264,7 @@ fun generate(board: Board, depth: Int = 1, alpha: Double = NEGATIVE_INFINITY, be
 			// Minimizing
 			score = POSITIVE_INFINITY
 			for (move: Move in legalMoves) {
-				if (returnMove) {
-					val expectedRemaining: Duration? = progress?.next()
-					if (expectedRemaining != null && expectedRemaining > 1.minutes) {
-						print("""\x1B[1K\r""")
-						return generate(board, (depth - 1).coerceAtLeast(1))
-					}
-				}
+				progress?.next()
 				board.doMove(move)
 				val generatedScore: Double = generate(board, depth - 1, alpha, beta, false) as Double
 				if (generatedScore < score) {
