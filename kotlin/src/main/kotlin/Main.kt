@@ -68,14 +68,14 @@ fun main() {
 				println(board)
 				println("Move: $move")
 				println("Time: ${time.inWholeSeconds}s")
-				println("Depth: $depth${if (depthAdj > 0) " (+$depthAdj)" else " ($depthAdj)"}")
+				println("Depth: $depth")
 				println()
-				when (depthAdj) {
-					1.0 -> {
+				when {
+					depthAdj > 1.0 -> {
 						depth++
 						depthAdj = 0.0
 					}
-					-1.0 -> {
+					depthAdj < -1.0 -> {
 						depth--
 						depthAdj = 0.0
 					}
@@ -83,5 +83,6 @@ fun main() {
 				depth.coerceAtLeast(1)
 			}
 		}
+		println("Board: ${evaluate(board)}")
 	}
 }

@@ -14,10 +14,12 @@ class ProgressBar(val len: Double, val width: Int = 60) {
 		print("[${" ".repeat(width)}] 0% | 0s /")
 	}
 
-	fun next(n: Double = 1.0) {
-		val duration: Duration = timeStart.elapsedNow()
+	fun next(n: Double = 1.0): Duration {
 		currentStep += n
 		currentPrinted = (step * currentStep).toInt()
-		print("\\x1B[1K\r[${"#".repeat(currentPrinted)}${" ".repeat(width - currentPrinted)}] ${round(currentStep / len * 100).toInt()}% | ${duration.inWholeSeconds}s / ${(duration / currentStep * len).inWholeSeconds}s")
+		val durationFromStart: Duration = timeStart.elapsedNow()
+		val expectionAll: Duration = durationFromStart / currentStep * len
+		print("\\x1B[1K\r[${"#".repeat(currentPrinted)}${" ".repeat(width - currentPrinted)}] ${round(currentStep / len * 100).toInt()}% | ${durationFromStart.inWholeSeconds}s / ${expectionAll.inWholeSeconds}s")
+		return expectionAll - durationFromStart
 	}
 }
