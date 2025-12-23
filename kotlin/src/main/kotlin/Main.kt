@@ -59,16 +59,16 @@ fun main() {
 				}
 				// only do something if twice too low/high
 				board.doMove(move)
-				depthAdj += when {
-					(timeDecr != null && time > timeDecr) -> - 1.0
-					(timeIncr != null && time < timeIncr) -> 0.5
-					else -> 0.0
+				when {
+					(timeDecr != null && time > timeDecr) -> depthAdj = - 1.0
+					(timeIncr != null && time < timeIncr) -> depthAdj += 0.5
+					else -> depthAdj = 0.0
 				}
 				println()
 				println(board)
 				println("Move: $move")
 				println("Time: ${time.inWholeSeconds}s")
-				println("Depth: $depth")
+				println("Depth: $depth (${if (depthAdj >= 0) "+$depthAdj" else depthAdj})")
 				println()
 				when {
 					depthAdj > 1.0 -> {
@@ -83,6 +83,6 @@ fun main() {
 				depth.coerceAtLeast(1)
 			}
 		}
-		println("Board: ${evaluate(board)}")
+		println("Score: ${evaluate(board)}")
 	}
 }

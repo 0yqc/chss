@@ -158,15 +158,7 @@ fun legalMovesSorted(board: Board): List<Move> {
 }
 
 fun evaluate(board: Board): Double {
-	when {
-		board.isDraw -> return 0.0
-		board.isMated && board.sideToMove == Side.BLACK -> return POSITIVE_INFINITY
-		board.isMated && board.sideToMove == Side.WHITE -> return NEGATIVE_INFINITY
-	}
-	var scorePosMaterial: Double = 0.0
-	var scorePawnStructure: Double = 0.0
-	var scoreMobillity: Double = 0.0
-	var scoreAttacking: Double = 0.0
+	var score: Double = 0.0
 	val nPawns: Int = board.getBitboard(Piece.WHITE_PAWN).countOneBits() + board.getBitboard(Piece.BLACK_PAWN).countOneBits()
 	// knights are stronger with more pawns, bishops stronger with fewer pawns
 	val pieceValues: Map<Piece, Double> = mapOf(
@@ -191,12 +183,14 @@ fun evaluate(board: Board): Double {
 			}
 
 			// material, adjusted to position
-			scorePosMaterial += (pieceValues[piece] ?: 0.0) + (Maps.main[piece]?.get(square) ?: 0.0)
+			score += (pieceValues[piece] ?: 0.0) + (Maps.main[piece]?.get(square) ?: 0.0)
 
 			// pawn structure
-			if (piece == Piece.WHITE_PAWN) {
-				scorePawnStructure += board.squareAttackedByPieceType(square, Side.WHITE, PieceType.PAWN).countOneBits() / 4.0 // Only WHITE pawns bc Side
-				scorePawnStructure -= board.squareAttackedByPieceType(square, Side.WHITE, PieceType.PAWN).countOneBits() / 4.0 // Only BLACK pawns bc Side
+			// 0.25 if pawn is protected once, no more
+			score += when {
+				(piece == Piece.WHITE_PAWN && board.squareAttackedByPieceType(square, Side.WHITE, PieceType.PAWN) != 0L) -> 0.25
+				(piece == Piece.BLACK_PAWN && board.squareAttackedByPieceType(square, Side.BLACK, PieceType.PAWN) != 0L) -> -0.25
+				else -> 0.0
 			}
 		}
 	}
@@ -204,34 +198,33 @@ fun evaluate(board: Board): Double {
 	// attacked squares
 	for (square: Square in entries) {
 		val attackedWhiteCount: Double = board.squareAttackedBy(square, Side.WHITE).countOneBits().toDouble()
-		val attackedBlackCount: Double = board.squareAttackedBy(square, Side.WHITE).countOneBits().toDouble()
+		val attackedBlackCount: Double = board.squareAttackedBy(square, Side.BLACK).countOneBits().toDouble()
 
 		// general / moving
-		scoreMobillity += attackedWhiteCount / 32.0
-		scoreMobillity -= attackedBlackCount / 32.0
+		score += attackedWhiteCount / 32.0
+		score -= attackedBlackCount / 32.0
 
 		// more than opponent / attacking
 		when {
 			(attackedWhiteCount > attackedBlackCount) -> {
-				scoreAttacking += abs((pieceValues[board.getPiece(square)] ?: 0.0) / 4.0)
+				score += abs((pieceValues[board.getPiece(square)] ?: 0.0) / 4.0)
 			}
 
 			(attackedBlackCount > attackedWhiteCount) -> {
-				scoreAttacking -= abs((pieceValues[board.getPiece(square)] ?: 0.0) / 4.0)
+				score -= abs((pieceValues[board.getPiece(square)] ?: 0.0) / 4.0)
 			}
 		}
 	}
-	println("Material: $scorePosMaterial\nPawn Structure: $scorePawnStructure\nMobillity: $scoreMobillity\nAttacking: $scoreAttacking")
-	return scorePosMaterial + scorePawnStructure + scoreMobillity + scoreAttacking
+	return score
 }
 
 fun generate(board: Board, depth: Int = 1, alpha: Double = NEGATIVE_INFINITY, beta: Double = POSITIVE_INFINITY, returnMove: Boolean = true): Any {
 	// https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning#Pseudocode
-	if (depth == 0 || board.isDraw || board.isMated) {
-		return when (returnMove) {
-			true -> Unit
-			false -> evaluate(board)
-		}
+	when {
+		depth == 0 -> return evaluate(board)
+		board.isDraw -> return 0.0
+		board.isMated && board.sideToMove == Side.BLACK -> return POSITIVE_INFINITY
+		board.isMated && board.sideToMove == Side.WHITE -> return NEGATIVE_INFINITY
 	}
 	val legalMoves = legalMovesSorted(board)
 	var bestMove: Move = legalMoves.first()
