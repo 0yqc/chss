@@ -71,11 +71,11 @@ fun main() {
 				println("Depth: $depth (${if (depthAdj >= 0) "+$depthAdj" else depthAdj})")
 				println()
 				when {
-					depthAdj > 1.0 -> {
+					depthAdj >= 1.0 -> {
 						depth++
 						depthAdj = 0.0
 					}
-					depthAdj < -1.0 -> {
+					depthAdj <= -1.0 -> {
 						depth--
 						depthAdj = 0.0
 					}
