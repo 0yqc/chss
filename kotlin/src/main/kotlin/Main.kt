@@ -10,7 +10,7 @@ fun main() {
 	val board: Board = Board()
 
 	val players: Map<Side, String> = mapOf(
-		Side.WHITE to "chss",
+		Side.WHITE to "human",
 		Side.BLACK to "chss"
 	)
 
